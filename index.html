@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitMirror — AI Virtual Try-On</title>
+<style>
+  :root {
+    --bg: #0b0d12; --surface: #14171f; --surface2: #1c2029;
+    --border: #2a2f3c; --text: #eef1f6; --muted: #9aa3b5;
+    --accent: #7c5cff; --accent2: #4dd6ff; --ok: #34d399; --err: #f87171;
+    font-size: 16px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,-apple-system,sans-serif; min-height:100vh;
+    background-image: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(124,92,255,.18), transparent); }
+  .container { max-width:1080px; margin:0 auto; padding:24px 20px 60px; }
+  header { text-align:center; padding:28px 0 10px; }
+  h1 { font-size:2rem; font-weight:800; letter-spacing:-.02em;
+    background:linear-gradient(90deg,var(--accent),var(--accent2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .tagline { color:var(--muted); margin-top:8px; font-size:.95rem; }
+  .steps { display:flex; gap:12px; justify-content:center; margin:22px 0 30px; flex-wrap:wrap; }
+  .step-chip { background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:7px 16px; font-size:.82rem; color:var(--muted); }
+  .step-chip b { color:var(--accent2); margin-right:6px; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  @media(max-width:760px){ .grid{grid-template-columns:1fr;} }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:20px; }
+  .card h2 { font-size:1rem; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+  .num { width:22px; height:22px; border-radius:50%; background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:inline-flex; align-items:center; justify-content:center; font-size:.75rem; font-weight:700; color:#fff; }
+  input[type=text], select { width:100%; background:var(--surface2); border:1px solid var(--border); color:var(--text);
+    border-radius:10px; padding:11px 13px; font-size:.9rem; outline:none; }
+  input[type=text]:focus { border-color:var(--accent); }
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; border:none;
+    border-radius:10px; padding:11px 18px; font-size:.9rem; font-weight:600; transition:.15s; }
+  .btn-primary { background:linear-gradient(135deg,var(--accent),#5a3ee8); color:#fff; width:100%; }
+  .btn-primary:hover { filter:brightness(1.12); }
+  .btn-primary:disabled { opacity:.45; cursor:not-allowed; }
+  .btn-ghost { background:var(--surface2); border:1px solid var(--border); color:var(--text); }
+  .dropzone { border:2px dashed var(--border); border-radius:12px; padding:26px 14px; text-align:center; cursor:pointer;
+    color:var(--muted); font-size:.85rem; transition:.15s; margin-top:10px; }
+  .dropzone:hover, .dropzone.drag { border-color:var(--accent); background:rgba(124,92,255,.06); }
+  .img-preview { max-height:230px; border-radius:10px; margin-top:12px; display:block; margin-left:auto; margin-right:auto; }
+  .candidates { display:grid; grid-template-columns:repeat(auto-fill,minmax(72px,1fr)); gap:8px; margin-top:12px; }
+  .candidates img { width:100%; aspect-ratio:3/4; object-fit:cover; border-radius:8px; cursor:pointer; border:2px solid transparent; }
+  .candidates img.sel { border-color:var(--accent2); }
+  .status { margin-top:12px; font-size:.85rem; color:var(--muted); min-height:1.2em; }
+  .status.err { color:var(--err); } .status.ok { color:var(--ok); }
+  .spinner { display:inline-block; width:14px; height:14px; border:2px solid var(--border); border-top-color:var(--accent);
+    border-radius:50%; animation:spin .8s linear infinite; vertical-align:-2px; margin-right:6px; }
+  @keyframes spin { to { transform:rotate(360deg);} }
+  .result-wrap { text-align:center; }
+  #resultImg { max-width:100%; max-height:520px; border-radius:14px; border:1px solid var(--border); }
+  .settings-row { display:flex; gap:10px; align-items:center; margin-bottom:14px; flex-wrap:wrap; }
+  .settings-row label { font-size:.82rem; color:var(--muted); white-space:nowrap; }
+  details { margin-top:16px; color:var(--muted); font-size:.85rem; }
+  summary { cursor:pointer; }
+  footer { text-align:center; margin-top:40px; color:var(--muted); font-size:.78rem; line-height:1.6; }
+  .hidden { display:none !important; }
+  a { color:var(--accent2); }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>FitMirror 🪞</h1>
+    <p class="tagline">Paste an Amazon · Flipkart · Myntra link (or upload a garment pic) + your photo → see it on you, powered by AI</p>
+  </header>
+
+  <div class="steps">
+    <span class="step-chip"><b>1</b>Paste link / upload garment</span>
+    <span class="step-chip"><b>2</b>Upload your full-body photo</span>
+    <span class="step-chip"><b>3</b>AI try-on ✨</span>
+  </div>
+
+  <details style="margin:0 0 18px;">
+    <summary>⚙️ Settings — Hugging Face token (recommended, free)</summary>
+    <p style="margin:10px 0;">Anonymous users share a tiny GPU quota. Create a <b>free</b> account at
+      <a href="https://huggingface.co/settings/tokens" target="_blank">huggingface.co/settings/tokens</a>,
+      make a token with "Read" access, and paste it below. Stored only in your browser.</p>
+    <input type="text" id="hfToken" placeholder="hf_xxxxx...">
+    <button class="btn btn-ghost" id="saveToken" style="margin-top:8px;">Save token</button>
+  </details>
+
+  <div class="grid">
+    <!-- STEP 1: GARMENT -->
+    <div class="card">
+      <h2><span class="num">1</span>Garment</h2>
+      <div class="settings-row">
+        <input type="text" id="productUrl" placeholder="Paste Amazon / Flipkart / Myntra product link…">
+      </div>
+      <button class="btn btn-primary" id="fetchBtn">🔍 Fetch product images</button>
+      <div id="linkStatus" class="status"></div>
+      <div id="candidates" class="candidates"></div>
+
+      <div class="dropzone" id="garmentDrop">…or drop / click to upload a garment image<br><small>(flat front view works best)</small></div>
+      <input type="file" id="garmentFile" accept="image/*" class="hidden">
+      <img id="garmentPreview" class="img-preview hidden">
+    </div>
+
+    <!-- STEP 2: PERSON -->
+    <div class="card">
+      <h2><span class="num">2</span>Your Photo</h2>
+      <div class="dropzone" id="personDrop">Drop / click to upload a photo of yourself<br><small>Full-body, standing straight, plain background, good light = best results</small></div>
+      <input type="file" id="personFile" accept="image/*" class="hidden">
+      <img id="personPreview" class="img-preview hidden">
+
+      <h2 style="margin-top:18px;"><span class="num">3</span>Options</h2>
+      <div class="settings-row">
+        <label>Cloth type</label>
+        <select id="clothType" style="flex:1;">
+          <option value="overall">Full outfit</option>
+          <option value="upper" selected>Top / shirt / t-shirt</option>
+          <option value="lower">Bottom / pants</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" id="tryonBtn" disabled>✨ Try it on me</button>
+      <div id="tryonStatus" class="status"></div>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="card result-wrap" style="margin-top:20px;" id="resultCard">
+    <h2 style="justify-content:center;"><span class="num">✨</span>Result</h2>
+    <p id="resultPlaceholder" style="color:var(--muted);font-size:.88rem;padding:30px 0;">Your try-on will appear here</p>
+    <img id="resultImg" class="hidden">
+    <br><br>
+    <button class="btn btn-ghost hidden" id="downloadBtn">⬇ Download result</button>
+  </div>
+
+  <footer>
+    Powered by CatVTON (open-source AI) running on free Hugging Face GPUs · Results are AI-generated visualisations, not exact fit previews.<br>
+    Tip: complex patterns, dresses and side poses can produce artefacts — retry with a different photo or more steps.
+  </footer>
+</div>
+
+<script type="module">
+import { Client, handle_file } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+
+const $ = id => document.getElementById(id);
+let garmentImage = null;   // {url} or File
+let personFile = null;
+let client = null;
+
+/* ---------- token ---------- */
+$("hfToken").value = localStorage.getItem("fm_hf_token") || "";
+$("saveToken").onclick = () => {
+  localStorage.setItem("fm_hf_token", $("hfToken").value.trim());
+  $("saveToken").textContent = "Saved ✓"; setTimeout(()=>$("saveToken").textContent="Save token",1500);
+};
+
+/* ---------- link fetching ---------- */
+$("fetchBtn").onclick = async () => {
+  const url = $("productUrl").value.trim();
+  const st = $("linkStatus");
+  if (!url) { st.textContent = "Paste a product link first."; st.className="status err"; return; }
+  st.innerHTML = '<span class="spinner"></span>Fetching product page…'; st.className="status";
+  $("candidates").innerHTML = "";
+  try {
+    const resp = await fetch("https://r.jina.ai/" + url);
+    if (!resp.ok) throw new Error("reader returned " + resp.status);
+    const md = await resp.text();
+    let imgs = [...new Set(md.match(/https?:\/\/[^\s)"']+\.(?:jpg|jpeg|png|webp)[^\s)"']*/gi) || [])];
+    // keep only plausible product photos, drop icons/thumbs
+    imgs = imgs.filter(u => !/_SS(32|50|64|75)_|icon|logo|sprite|\.gif/i.test(u))
+               .filter(u => /(media-amazon\.com\/images\/I\/|rukmin|flixcart|myntra)/i.test(u));
+    if (!imgs.length) throw new Error("no product images found — copy-paste a product image instead");
+    // prefer larger amazon variants
+    imgs = imgs.map(u => u.replace(/\._[^.]+_\./, "._AC_UY741_.").replace(/\._AC_\.jpg$/, ".jpg")).slice(0, 12);
+    st.textContent = `Found ${imgs.length} images — tap one to use it:`; st.className="status ok";
+    const wrap = $("candidates");
+    imgs.forEach((u,i) => {
+      const im = document.createElement("img");
+      im.src = u; im.loading = "lazy"; im.referrerPolicy = "no-referrer";
+      im.onclick = async () => {
+        [...wrap.children].forEach(c=>c.classList.remove("sel"));
+        im.classList.add("sel");
+        $("garmentPreview").src = u; $("garmentPreview").classList.remove("hidden");
+        st.textContent = "Preparing image…"; st.className = "status";
+        try {
+          // Convert remote product image locally to PNG (avoids RGBA/JPEG server error)
+          const resp = await fetch(u, { mode: "cors" });
+          const blob = await resp.blob();
+          const f = await toPngFile(new File([blob], "garment.jpg", { type: blob.type || "image/png" }));
+          garmentImage = { file: f };
+          $("garmentPreview").src = URL.createObjectURL(f);
+          st.textContent = "Garment ready ✓"; st.className = "status ok";
+        } catch (e) {
+          // CORS/decode fallback: hand the raw URL to the API
+          garmentImage = { url: u };
+          st.textContent = "Garment ready ✓ (using direct link)"; st.className = "status ok";
+        }
+        updateBtn();
+      };
+      wrap.appendChild(im);
+      im.onerror = () => im.remove();
+    });
+  } catch (e) {
+    st.textContent = "Couldn't auto-fetch (" + e.message + "). Please upload/screenshot the garment image instead.";
+    st.className = "status err";
+  }
+};
+
+/* ---------- file inputs ---------- */
+// Re-encode any image through canvas and export as PNG.
+// WHY PNG: Gradio's ImageEditor converts uploads to RGBA then saves using the
+// file's extension -> RGBA+JPG = "cannot write mode RGBA as JPEG". PNG holds RGBA.
+async function toCanvasBlob(file, maxDim = 1536) {
+  let bmp;
+  try { bmp = await createImageBitmap(file); }
+  catch (e) { throw new Error("Browser couldn't decode this image format — please use JPG/PNG (or screenshot it first)."); }
+  const scale = Math.min(1, maxDim / Math.max(bmp.width, bmp.height));
+  const c = document.createElement("canvas");
+  c.width = Math.round(bmp.width * scale);
+  c.height = Math.round(bmp.height * scale);
+  const ctx = c.getContext("2d");
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, c.width, c.height);
+  ctx.drawImage(bmp, 0, 0, c.width, c.height);
+  return await new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(new Error("re-encode failed")), "image/png"));
+}
+async function toPngFile(file) {
+  const blob = await toCanvasBlob(file);
+  return new File([blob], (file.name || "photo").replace(/\.[^.]+$/, "") + ".png", { type: "image/png" });
+}
+// The CatVTON server reads person_image["layers"][0] — empty layers crash it.
+// A fully-blank layer makes the server fall back to its automatic masker.
+async function blankLayerFile(w = 768, h = 1024) {
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  const blob = await new Promise(res => c.toBlob(res, "image/png"));
+  return new File([blob], "blank_mask.png", { type: "image/png" });
+}
+
+function wireDrop(zoneId, fileId, handler) {
+  const zone = $(zoneId), input = $(fileId);
+  zone.onclick = () => input.click();
+  zone.ondragover = e => { e.preventDefault(); zone.classList.add("drag"); };
+  zone.ondragleave = () => zone.classList.remove("drag");
+  zone.ondrop = e => { e.preventDefault(); zone.classList.remove("drag"); if(e.dataTransfer.files[0]) handler(e.dataTransfer.files[0]); };
+  input.onchange = () => { if(input.files[0]) handler(input.files[0]); };
+}
+wireDrop("garmentDrop","garmentFile", async raw => {
+  try {
+    const f = await toPngFile(raw);
+    garmentImage = { file: f };
+    $("garmentPreview").src = URL.createObjectURL(f); $("garmentPreview").classList.remove("hidden");
+    updateBtn();
+  } catch (e) { alert(e.message); }
+});
+wireDrop("personDrop","personFile", async raw => {
+  try {
+    personFile = await toPngFile(raw);
+    $("personPreview").src = URL.createObjectURL(personFile); $("personPreview").classList.remove("hidden");
+    updateBtn();
+  } catch (e) { alert(e.message); }
+});
+
+function updateBtn() { $("tryonBtn").disabled = !(garmentImage && personFile); }
+
+/* ---------- try-on ---------- */
+$("tryonBtn").onclick = async () => {
+  const st = $("tryonStatus"), btn = $("tryonBtn");
+  btn.disabled = true;
+  const token = ($("hfToken").value || "").trim() || undefined;
+  st.innerHTML = '<span class="spinner"></span>Loading AI model…'; st.className="status";
+  try {
+    if (!client) client = await Client.connect("zhengchong/CatVTON", token ? { hf_token: token } : {});
+    st.innerHTML = '<span class="spinner"></span>Running virtual try-on (can take 1–3 min)…';
+    let garmentInput;
+    if (garmentImage.url) garmentInput = garmentImage.url;
+    else garmentInput = await handle_file(garmentImage.file);
+
+    const blankLayer = await blankLayerFile();
+    const result = await client.predict("/submit_function", [
+      {
+        background: await handle_file(personFile),
+        layers: [await handle_file(blankLayer)],  // server requires layers[0]; blank = auto-mask
+        composite: null,
+      },
+      garmentInput,
+      $("clothType").value,
+      30,   // inference steps
+      2.5,  // CFG
+      Math.floor(Math.random()*10000), // random seed each run
+    ]);
+
+    // dig the output image out
+    let outUrl = null;
+    const scan = o => {
+      if (!o) return;
+      if (typeof o === "string" && o.startsWith("http")) outUrl ??= o;
+      else if (Array.isArray(o)) o.forEach(scan);
+      else if (typeof o === "object") { if (o.url) outUrl ??= o.url; Object.values(o).forEach(scan); }
+    };
+    scan(result.data);
+    if (!outUrl) throw new Error("no image in response");
+
+    $("resultImg").src = outUrl;
+    $("resultImg").classList.remove("hidden");
+    $("resultPlaceholder").classList.add("hidden");
+    $("downloadBtn").classList.remove("hidden");
+    $("downloadBtn").onclick = () => window.open(outUrl, "_blank");
+    st.innerHTML = ""; st.className = "status ok";
+    $("resultCard").scrollIntoView({behavior:"smooth"});
+  } catch (e) {
+    let msg = e.message || String(e);
+    if (/quota/i.test(msg)) msg = "Free GPU quota exhausted. Add a (free) Hugging Face token in ⚙️ Settings above — that gives you your own daily quota.";
+    if (/login|auth/i.test(msg)) msg = "Your HF token looks invalid — re-check it in ⚙️ Settings.";
+    st.textContent = "❌ " + msg; st.className = "status err";
+  } finally { btn.disabled = false; updateBtn(); }
+};
+</script>
+</body>
+</html>
