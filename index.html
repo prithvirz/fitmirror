@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FitMirror - Free AI Virtual Try-On | IsoSmart</title>
-<meta name="description" content="Free AI virtual try-on. Paste an Amazon, Flipkart or Myntra link, upload your photo and see the outfit on you. By IsoSmart.">
+<meta name="description" content="Free AI virtual try-on. Upload a garment photo and your photo, and see the outfit on you. By IsoSmart.">
 <meta property="og:title" content="FitMirror - Free AI Virtual Try-On">
-<meta property="og:description" content="Paste a shopping link, upload your photo, see the outfit on you. Free, no sign-up.">
+<meta property="og:description" content="Upload a garment photo and your photo, see the outfit on you. Free, no sign-up.">
 <meta property="og:url" content="https://isosmart.online">
 <style>
   :root {
@@ -74,7 +74,7 @@
 <div class="container">
   <header>
     <h1>FitMirror 🪞</h1>
-    <p class="tagline">Paste an Amazon · Flipkart · Myntra link (or upload a garment pic) + your photo → see it on you, powered by AI</p>
+    <p class="tagline">Upload a garment photo (or try a product link) + your own photo, and see it on you with AI</p>
   </header>
 
   <div class="steps">
@@ -139,7 +139,7 @@
   </div>
 
   <section style="margin:44px 0 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;">
-    <div class="card"><h2>How it works</h2><p style="color:var(--muted);font-size:.9rem;">Pick a garment from a shopping link or a photo, add your own photo, and an open-source AI model (IDM-VTON) draws the outfit on you. Most results take under two minutes.</p></div>
+    <div class="card"><h2>How it works</h2><p style="color:var(--muted);font-size:.9rem;">Upload a garment photo (a product link works on some stores), add your own photo, and an open-source AI model (IDM-VTON) draws the outfit on you. Most results take under two minutes.</p></div>
     <div class="card"><h2>Privacy</h2><p style="color:var(--muted);font-size:.9rem;">There is no account and no server of ours. Your photos go straight from your browser to the Hugging Face AI service and are not stored by IsoSmart. Your optional token stays in your browser.</p></div>
     <div class="card"><h2>About IsoSmart</h2><p style="color:var(--muted);font-size:.9rem;">IsoSmart is a solo-founder project from Jamshedpur, India, building free AI web apps. FitMirror is the first product. Early stage, no revenue yet.</p></div>
   </section>
@@ -173,6 +173,7 @@ $("fetchBtn").onclick = async () => {
   st.innerHTML = '<span class="spinner"></span>Fetching product page…'; st.className="status";
   $("candidates").innerHTML = "";
   try {
+    if (/\.(jpe?g|png|webp)(\?|$)/i.test(url)) { garmentImage = { url }; $("garmentPreview").src = url; $("garmentPreview").classList.remove("hidden"); st.textContent = "Garment ready ✓ (direct image link)"; st.className = "status ok"; updateBtn(); return; }
     const resp = await fetch("https://r.jina.ai/" + url);
     if (!resp.ok) throw new Error("reader returned " + resp.status);
     const md = await resp.text();
@@ -180,7 +181,7 @@ $("fetchBtn").onclick = async () => {
     // keep only plausible product photos, drop icons/thumbs
     imgs = imgs.filter(u => !/_SS(32|50|64|75)_|icon|logo|sprite|\.gif/i.test(u))
                .filter(u => /(media-amazon\.com\/images\/I\/|rukmin|flixcart|myntra)/i.test(u));
-    if (!imgs.length) throw new Error("no product images found — copy-paste a product image instead");
+    if (!imgs.length) throw new Error("no product images found. This store may block automatic fetching, so save the product image and upload it instead");
     // prefer larger amazon variants
     imgs = imgs.map(u => u.replace(/\._[^.]+_\./, "._AC_UY741_.").replace(/\._AC_\.jpg$/, ".jpg")).slice(0, 12);
     st.textContent = `Found ${imgs.length} images — tap one to use it:`; st.className="status ok";

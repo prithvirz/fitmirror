@@ -1,6 +1,6 @@
 # 🪞 FitMirror — AI Virtual Try-On
 
-**Paste a shopping link → upload your photo → see the outfit on yourself.**
+**Upload a garment photo → upload your photo → see the outfit on yourself.**
 
 FitMirror is a 100% free, serverless virtual try-on web app. It pulls garment images straight from product pages (Amazon, Flipkart, Myntra…) and runs an open-source AI model (**IDM-VTON**) on Hugging Face's free GPU tier — no backend, no API bills, no infrastructure.
 
@@ -12,7 +12,7 @@ FitMirror is a 100% free, serverless virtual try-on web app. It pulls garment im
 
 ## ✨ Features
 
-- 🔗 **Product-link fetching** — paste any Amazon / Flipkart / Myntra URL; FitMirror extracts candidate product photos via the [Jina Reader](https://jina.ai/reader) API and lets you pick one.
+- **Product-link fetching (best effort)** - paste a product page or a direct image link. Stores that block bots (Amazon and Myntra returned bot walls in our 2026-11-17 test) fall back to upload.
 - 📤 **Manual fallback** — upload or drag-and-drop a garment image when auto-fetch is blocked (some storefronts block scraping).
 - 🧑 **Your photo, your fit preview** — full-body photo in, AI-generated try-on out.
 - 🔐 **Bring-your-own token** — users paste their own free Hugging Face token (stored only in their browser's localStorage) to unlock dedicated ZeroGPU quota. Nothing is sent to any third-party server besides Hugging Face itself.
@@ -78,7 +78,7 @@ ode tests/smoke.mjs`.
 - Results are **AI visualisations**, not exact size/fit previews.
 - Complex patterns, dresses and unusual poses can produce artifacts — retry with a different photo.
 - Each run takes about 20-60 seconds on Hugging Face's free ZeroGPU tier; anonymous users share a small daily quota (hence the token field).
-- Link auto-fetch depends on third-party reader services; storefront layouts change, so the fallback upload path always exists.
+- Link auto-fetch is best effort. In our 2026-11-17 test Amazon and Myntra pages were blocked by the reader service, so uploading a garment photo is the reliable path.
 
 ## 🛣️ Roadmap
 
