@@ -6,6 +6,8 @@ FitMirror is a 100% free, serverless virtual try-on web app. It pulls garment im
 
 🔗 **Live demo:** https://isosmart.online
 
+![FitMirror screenshot](docs/screenshot.png)
+
 ---
 
 ## ✨ Features
@@ -66,23 +68,28 @@ Full details in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 | [Deployment](docs/DEPLOYMENT.md) | Hosting on Cloudflare Workers (live), GitHub Pages, Netlify; custom domains |
 | [Troubleshooting](docs/TROUBLESHOOTING.md) | Every error we hit and its fix (RGBA-JPEG, IndexError, quota…) |
 
+## Status
+
+Live at https://isosmart.online. MVP stage, solo maintainer, no paid infrastructure. Check the engine any time with `node tests/smoke.mjs`.
+
 ## ⚠️ Limitations & Honest Notes
 
 - Results are **AI visualisations**, not exact size/fit previews.
 - Complex patterns, dresses and unusual poses can produce artifacts — retry with a different photo.
-- Each run takes ~1–3 minutes on Hugging Face's free ZeroGPU tier; anonymous users share a small daily quota (hence the token field).
+- Each run takes about 20-60 seconds on Hugging Face's free ZeroGPU tier; anonymous users share a small daily quota (hence the token field).
 - Link auto-fetch depends on third-party reader services; storefront layouts change, so the fallback upload path always exists.
 
 ## 🛣️ Roadmap
 
 - [ ] Result gallery with localStorage history
 - [ ] More storefronts (Ajio, Meesho, Myntra deep-links)
+- [x] Try-on engine moved from CatVTON to IDM-VTON when the CatVTON Space went down (2026-11)
 - [ ] Side-by-side before/after slider
 - [ ] Optional paid-API mode (FASHN / Replicate IDM-VTON) behind the same UI
 
 ## 🙏 Credits
 
-- [IDM-VTON](https://huggingface.co/spaces/yisol/IDM-VTON) — Zheng *et al.*, "CatM: Concatenation Is All You Need for Virtual Try-On" (open-source model + demo Space)
+- [IDM-VTON](https://huggingface.co/spaces/yisol/IDM-VTON) - Choi *et al.*, "Improving Diffusion Models for Authentic Virtual Try-on in the Wild" (ECCV 2024). Open-source model + demo Space.
 - [Hugging Face ZeroGPU](https://huggingface.co/docs/hub/spaces-zerogpu) — free community GPU hosting
 - [Jina Reader](https://jina.ai/reader) — link → markdown/image extraction
 - [@gradio/client](https://www.npmjs.com/package/@gradio/client) — browser SDK for Gradio Spaces
