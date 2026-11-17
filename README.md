@@ -70,7 +70,8 @@ Full details in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ## Status
 
-Live at https://isosmart.online. MVP stage, solo maintainer, no paid infrastructure. Check the engine any time with `node tests/smoke.mjs`.
+Live at https://isosmart.online. MVP stage, solo maintainer, no paid infrastructure. Check the engine any time with 
+ode tests/smoke.mjs`.
 
 ## ⚠️ Limitations & Honest Notes
 
@@ -86,6 +87,10 @@ Live at https://isosmart.online. MVP stage, solo maintainer, no paid infrastruct
 - [x] Try-on engine moved from CatVTON to IDM-VTON when the CatVTON Space went down (2026-11)
 - [ ] Side-by-side before/after slider
 - [ ] Optional paid-API mode (FASHN / Replicate IDM-VTON) behind the same UI
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Issues and pull requests are welcome.
 
 ## 🙏 Credits
 
