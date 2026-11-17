@@ -2,7 +2,11 @@
 
 `fitmirror/` is a plain static folder — any static host works. No build step exists.
 
-## here.now (current hosting)
+## Cloudflare Workers (current hosting, https://isosmart.online)
+
+The single index.html is uploaded as a text module and served by a small Worker on a custom domain. Any static host works the same way.
+
+## here.now (previous hosting)
 
 ```bash
 cd fitmirror

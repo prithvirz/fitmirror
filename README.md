@@ -4,7 +4,7 @@
 
 FitMirror is a 100% free, serverless virtual try-on web app. It pulls garment images straight from product pages (Amazon, Flipkart, Myntra…) and runs an open-source AI model (**IDM-VTON**) on Hugging Face's free GPU tier — no backend, no API bills, no infrastructure.
 
-🔗 **Live demo:** https://floral-lemon-y9f6.here.now/
+🔗 **Live demo:** https://isosmart.online
 
 ---
 
@@ -19,7 +19,7 @@ FitMirror is a 100% free, serverless virtual try-on web app. It pulls garment im
 ## 🚀 Quick Start
 
 ### Use it hosted (nothing to install)
-1. Open **https://floral-lemon-y9f6.here.now/**
+1. Open **https://isosmart.online**
 2. *(Recommended)* ⚙️ Settings → paste a free HF token from [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens) (`Read` access is enough)
 3. Paste a product link *or* upload a garment image
 4. Upload a full-body photo of yourself
@@ -63,7 +63,7 @@ Full details in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 | Doc | Contents |
 |-----|----------|
 | [Architecture](docs/ARCHITECTURE.md) | Data flow, API contract, component reference |
-| [Deployment](docs/DEPLOYMENT.md) | Hosting on here.now, GitHub Pages, Netlify; custom domains |
+| [Deployment](docs/DEPLOYMENT.md) | Hosting on Cloudflare Workers (live), GitHub Pages, Netlify; custom domains |
 | [Troubleshooting](docs/TROUBLESHOOTING.md) | Every error we hit and its fix (RGBA-JPEG, IndexError, quota…) |
 
 ## ⚠️ Limitations & Honest Notes
@@ -90,3 +90,7 @@ Full details in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 ## 📄 License
 
 [MIT](LICENSE) © 2026 prithvirz
+
+## Contact
+
+Built by [IsoSmart](https://isosmart.online), a solo-founder project (MVP stage). Questions: head@isosmart.online
