@@ -2,7 +2,7 @@
 
 **Paste a shopping link → upload your photo → see the outfit on yourself.**
 
-FitMirror is a 100% free, serverless virtual try-on web app. It pulls garment images straight from product pages (Amazon, Flipkart, Myntra…) and runs an open-source AI model (**CatVTON**) on Hugging Face's free GPU tier — no backend, no API bills, no infrastructure.
+FitMirror is a 100% free, serverless virtual try-on web app. It pulls garment images straight from product pages (Amazon, Flipkart, Myntra…) and runs an open-source AI model (**IDM-VTON**) on Hugging Face's free GPU tier — no backend, no API bills, no infrastructure.
 
 🔗 **Live demo:** https://floral-lemon-y9f6.here.now/
 
@@ -13,7 +13,6 @@ FitMirror is a 100% free, serverless virtual try-on web app. It pulls garment im
 - 🔗 **Product-link fetching** — paste any Amazon / Flipkart / Myntra URL; FitMirror extracts candidate product photos via the [Jina Reader](https://jina.ai/reader) API and lets you pick one.
 - 📤 **Manual fallback** — upload or drag-and-drop a garment image when auto-fetch is blocked (some storefronts block scraping).
 - 🧑 **Your photo, your fit preview** — full-body photo in, AI-generated try-on out.
-- 🎛️ **Cloth-type control** — tops, bottoms, or full outfits.
 - 🔐 **Bring-your-own token** — users paste their own free Hugging Face token (stored only in their browser's localStorage) to unlock dedicated ZeroGPU quota. Nothing is sent to any third-party server besides Hugging Face itself.
 - 🪶 **Single-file app** — one `index.html`, zero build step, deployable anywhere static files are served.
 
@@ -45,17 +44,17 @@ No build tools, no dependencies, no `.env`. Deploy the folder as-is to GitHub Pa
 │  Browser   │ ─────────────────► │  r.jina.ai   │ ─────────────┐
 │ (index.html)│                   │  Reader API  │              ▼
 │            │                    └──────────────┘    ┌─────────────────────┐
-│            │   2. person + garment + blank mask     │ zhengchong/CatVTON  │
+│            │   2. person + garment + blank mask     │ yisol/IDM-VTON  │
 │            │ ─────────────────────────────────────► │ HF Space (ZeroGPU)  │
 │            │                                        │  · AutoMasker       │
-│            │   3. try-on result image               │  · CatVTON pipeline │
+│            │   3. try-on result image               │  · IDM-VTON pipeline │
 │            │ ◄───────────────────────────────────── └─────────────────────┘
 └────────────┘
 ```
 
 1. **Link extraction** — the page text/images are fetched through Jina Reader (CORS-friendly), plausible product photos are regex-filtered (icons and thumbnails dropped), then re-encoded locally.
 2. **Local re-encoding** — every image is drawn onto a `<canvas>` and exported as PNG before upload (this sidesteps a Gradio RGBA/JPEG bug — see [Troubleshooting](docs/TROUBLESHOOTING.md)).
-3. **Try-on inference** — the [@gradio/client](https://www.npmjs.com/package/@gradio/client) JS SDK calls the public CatVTON Space with `(person_editor, garment, cloth_type, steps=30, cfg=2.5, seed)`; a blank mask layer triggers the server's automatic human-parsing masker.
+3. **Try-on inference** — the [@gradio/client](https://www.npmjs.com/package/@gradio/client) JS SDK calls the public IDM-VTON Space with `(person_editor, garment, cloth_type, steps=30, cfg=2.5, seed)`; a blank mask layer triggers the server's automatic human-parsing masker.
 
 Full details in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
@@ -83,7 +82,7 @@ Full details in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ## 🙏 Credits
 
-- [CatVTON](https://huggingface.co/spaces/zhengchong/CatVTON) — Zheng *et al.*, "CatM: Concatenation Is All You Need for Virtual Try-On" (open-source model + demo Space)
+- [IDM-VTON](https://huggingface.co/spaces/yisol/IDM-VTON) — Zheng *et al.*, "CatM: Concatenation Is All You Need for Virtual Try-On" (open-source model + demo Space)
 - [Hugging Face ZeroGPU](https://huggingface.co/docs/hub/spaces-zerogpu) — free community GPU hosting
 - [Jina Reader](https://jina.ai/reader) — link → markdown/image extraction
 - [@gradio/client](https://www.npmjs.com/package/@gradio/client) — browser SDK for Gradio Spaces

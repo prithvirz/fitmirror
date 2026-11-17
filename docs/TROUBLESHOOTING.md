@@ -43,7 +43,7 @@ Sending `layers: []` (the natural thing for "I don't have a hand-drawn mask") in
 **Fix:** authenticate — create a free HF account, generate a token with **Read** access (https://huggingface.co/settings/tokens), and connect with it:
 
 ```js
-Client.connect("zhengchong/CatVTON", { hf_token: "hf_..." })
+Client.connect("yisol/IDM-VTON", { hf_token: "hf_..." })
 ```
 
 Signed-in users get a personal daily ZeroGPU quota. In FitMirror this is the ⚙️ Settings field; the token is stored only in `localStorage`.
@@ -75,14 +75,14 @@ Gradio surfaces server exceptions as bare `AppError(message)` — often just `In
 **Method that cracked it:** read the Space's actual source before guessing:
 
 ```bash
-curl -sS "https://huggingface.co/spaces/zhengchong/CatVTON/raw/main/app.py"
+curl -sS "https://huggingface.co/spaces/yisol/IDM-VTON/raw/main/app.py"
 ```
 
 and inspect the live component wiring:
 
 ```bash
-curl -sS "https://zhengchong-CatVTON.hf.space/config" | jq '.dependencies[] | select(.api_name=="submit_function")'
-curl -sS "https://zhengchong-CatVTON.hf.space/gradio_api/info"     # typed endpoint schema
+curl -sS "https://yisol-idm-vton.hf.space/config" | jq '.dependencies[] | select(.api_name=="submit_function")'
+curl -sS "https://yisol-idm-vton.hf.space/gradio_api/info"     # typed endpoint schema
 ```
 
 The `/gradio_api/info` schema showed `person_image` was an `EditorData` (with `background/layers/composite`), which revealed both bugs #1 and #2 above.

@@ -3,7 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FitMirror — AI Virtual Try-On</title>
+<title>FitMirror - Free AI Virtual Try-On | IsoSmart</title>
+<meta name="description" content="Free AI virtual try-on. Paste an Amazon, Flipkart or Myntra link, upload your photo and see the outfit on you. By IsoSmart.">
+<meta property="og:title" content="FitMirror - Free AI Virtual Try-On">
+<meta property="og:description" content="Paste a shopping link, upload your photo, see the outfit on you. Free, no sign-up.">
+<meta property="og:url" content="https://isosmart.online">
 <style>
   :root {
     --bg: #0b0d12; --surface: #14171f; --surface2: #1c2029;
@@ -105,15 +109,7 @@
       <input type="file" id="personFile" accept="image/*" class="hidden">
       <img id="personPreview" class="img-preview hidden">
 
-      <h2 style="margin-top:18px;"><span class="num">3</span>Options</h2>
-      <div class="settings-row">
-        <label>Cloth type</label>
-        <select id="clothType" style="flex:1;">
-          <option value="overall">Full outfit</option>
-          <option value="upper" selected>Top / shirt / t-shirt</option>
-          <option value="lower">Bottom / pants</option>
-        </select>
-      </div>
+      <p class="hint" style="margin:18px 0 10px;opacity:.7;font-size:13px;">Works best with tops, shirts and jackets, and a clear front-facing photo.</p>
       <button class="btn btn-primary" id="tryonBtn" disabled>✨ Try it on me</button>
       <div id="tryonStatus" class="status"></div>
     </div>
@@ -128,9 +124,15 @@
     <button class="btn btn-ghost hidden" id="downloadBtn">⬇ Download result</button>
   </div>
 
+  <section style="margin:44px 0 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;">
+    <div class="card"><h2>How it works</h2><p style="color:var(--muted);font-size:.9rem;">Pick a garment from a shopping link or a photo, add your own photo, and an open-source AI model (IDM-VTON) draws the outfit on you. Most results take under two minutes.</p></div>
+    <div class="card"><h2>Privacy</h2><p style="color:var(--muted);font-size:.9rem;">There is no account and no server of ours. Your photos go straight from your browser to the Hugging Face AI service and are not stored by IsoSmart. Your optional token stays in your browser.</p></div>
+    <div class="card"><h2>About IsoSmart</h2><p style="color:var(--muted);font-size:.9rem;">IsoSmart is a solo-founder project from Jamshedpur, India, building free AI web apps. FitMirror is the first product. Early stage, no revenue yet.</p></div>
+  </section>
+
   <footer>
-    Powered by CatVTON (open-source AI) running on free Hugging Face GPUs · Results are AI-generated visualisations, not exact fit previews.<br>
-    Tip: complex patterns, dresses and side poses can produce artefacts — retry with a different photo or more steps.
+    Results are AI-generated visualisations, not exact fit previews. Complex patterns, dresses and side poses can show artefacts; retry with a different photo.<br><br>
+    © 2026 <b>IsoSmart</b> · Prithviraj Barman · <a href="https://github.com/prithvirz/fitmirror" target="_blank">Source (MIT)</a> · <a href="mailto:head@isosmart.online">head@isosmart.online</a>
   </footer>
 </div>
 
@@ -265,23 +267,17 @@ $("tryonBtn").onclick = async () => {
   const token = ($("hfToken").value || "").trim() || undefined;
   st.innerHTML = '<span class="spinner"></span>Loading AI model…'; st.className="status";
   try {
-    if (!client) client = await Client.connect("zhengchong/CatVTON", token ? { hf_token: token } : {});
-    st.innerHTML = '<span class="spinner"></span>Running virtual try-on (can take 1–3 min)…';
-    let garmentInput;
-    if (garmentImage.url) garmentInput = garmentImage.url;
-    else garmentInput = await handle_file(garmentImage.file);
+    if (!client) client = await Client.connect("yisol/IDM-VTON", token ? { hf_token: token } : {});
+    st.innerHTML = '<span class="spinner"></span>Running virtual try-on (about 30 s to 2 min)…';
+    const garmentInput = await handle_file(garmentImage.url || garmentImage.file);
 
-    const blankLayer = await blankLayerFile();
-    const result = await client.predict("/submit_function", [
-      {
-        background: await handle_file(personFile),
-        layers: [await handle_file(blankLayer)],  // server requires layers[0]; blank = auto-mask
-        composite: null,
-      },
+    const result = await client.predict("/tryon", [
+      { background: await handle_file(personFile), layers: [], composite: null },
       garmentInput,
-      $("clothType").value,
-      30,   // inference steps
-      2.5,  // CFG
+      "a garment", // garment description
+      true,        // auto-mask the person
+      false,       // no crop
+      30,          // denoise steps
       Math.floor(Math.random()*10000), // random seed each run
     ]);
 
