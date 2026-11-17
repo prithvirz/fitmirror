@@ -55,6 +55,12 @@
   @keyframes spin { to { transform:rotate(360deg);} }
   .result-wrap { text-align:center; }
   #resultImg { max-width:100%; max-height:520px; border-radius:14px; border:1px solid var(--border); }
+  #cmp { position:relative; display:inline-block; max-width:100%; }
+  #cmp img { display:block; max-width:100%; max-height:520px; border-radius:14px; }
+  #cmp #beforeImg { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; background:var(--surface2);
+    clip-path:inset(0 calc(100% - var(--pos,50%)) 0 0); }
+  #cmpRange { width:min(100%,420px); display:block; margin:12px auto 0; accent-color:var(--accent); }
+  #histRow img { width:72px; height:96px; object-fit:cover; border-radius:8px; border:1px solid var(--border); cursor:pointer; }
   .settings-row { display:flex; gap:10px; align-items:center; margin-bottom:14px; flex-wrap:wrap; }
   .settings-row label { font-size:.82rem; color:var(--muted); white-space:nowrap; }
   details { margin-top:16px; color:var(--muted); font-size:.85rem; }
@@ -119,9 +125,17 @@
   <div class="card result-wrap" style="margin-top:20px;" id="resultCard">
     <h2 style="justify-content:center;"><span class="num">✨</span>Result</h2>
     <p id="resultPlaceholder" style="color:var(--muted);font-size:.88rem;padding:30px 0;">Your try-on will appear here</p>
-    <img id="resultImg" class="hidden">
+    <div id="cmp" class="hidden">
+      <img id="beforeImg" alt="Your photo">
+      <img id="resultImg" class="hidden" alt="Try-on result">
+    </div>
+    <input type="range" id="cmpRange" min="0" max="100" value="50" class="hidden" aria-label="Before and after slider">
     <br><br>
     <button class="btn btn-ghost hidden" id="downloadBtn">⬇ Download result</button>
+    <div id="history" class="hidden">
+      <h3 style="font-size:.85rem;color:var(--muted);margin:22px 0 8px;">Recent results (saved in this browser only) <a href="#" id="clearHist" style="margin-left:8px;">clear</a></h3>
+      <div id="histRow" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;"></div>
+    </div>
   </div>
 
   <section style="margin:44px 0 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;">
@@ -260,6 +274,31 @@ wireDrop("personDrop","personFile", async raw => {
 
 function updateBtn() { $("tryonBtn").disabled = !(garmentImage && personFile); }
 
+/* ---------- before/after slider ---------- */
+$("cmpRange").oninput = e => $("cmp").style.setProperty("--pos", e.target.value + "%");
+
+/* ---------- history (localStorage, thumbnails only, newest first, max 6) ---------- */
+const HKEY = "fitmirror.history";
+const loadHist = () => { try { return JSON.parse(localStorage.getItem(HKEY)) || []; } catch { return []; } };
+function renderHist() {
+  const h = loadHist(); $("history").classList.toggle("hidden", !h.length);
+  $("histRow").replaceChildren(...h.map(src => { const i = new Image(); i.src = src; i.alt = "Earlier result";
+    i.onclick = () => { $("cmp").classList.remove("hidden"); $("resultImg").src = src; $("resultImg").classList.remove("hidden");
+      $("beforeImg").classList.add("hidden"); $("cmpRange").classList.add("hidden"); $("resultCard").scrollIntoView({behavior:"smooth"}); };
+    return i; }));
+}
+async function saveHistory(url) {
+  try { // shortcut: skipped silently if the host blocks CORS or storage is full
+    const bmp = await createImageBitmap(await (await fetch(url)).blob());
+    const c = document.createElement("canvas"); const s = Math.min(1, 512 / bmp.width);
+    c.width = bmp.width * s; c.height = bmp.height * s; c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+    localStorage.setItem(HKEY, JSON.stringify([c.toDataURL("image/jpeg", .8), ...loadHist()].slice(0, 6)));
+    renderHist();
+  } catch (e) { console.warn("history not saved:", e.message); }
+}
+$("clearHist").onclick = e => { e.preventDefault(); localStorage.removeItem(HKEY); renderHist(); };
+renderHist();
+
 /* ---------- try-on ---------- */
 $("tryonBtn").onclick = async () => {
   const st = $("tryonStatus"), btn = $("tryonBtn");
@@ -294,6 +333,10 @@ $("tryonBtn").onclick = async () => {
 
     $("resultImg").src = outUrl;
     $("resultImg").classList.remove("hidden");
+    $("cmp").classList.remove("hidden");
+    $("beforeImg").src = $("personPreview").src; $("beforeImg").classList.remove("hidden");
+    $("cmpRange").value = 50; $("cmp").style.setProperty("--pos", "50%"); $("cmpRange").classList.remove("hidden");
+    saveHistory(outUrl);
     $("resultPlaceholder").classList.add("hidden");
     $("downloadBtn").classList.remove("hidden");
     $("downloadBtn").onclick = () => window.open(outUrl, "_blank");

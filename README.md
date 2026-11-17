@@ -82,10 +82,10 @@ ode tests/smoke.mjs`.
 
 ## 🛣️ Roadmap
 
-- [ ] Result gallery with localStorage history
+- [x] Result gallery with localStorage history
 - [ ] More storefronts (Ajio, Meesho, Myntra deep-links)
 - [x] Try-on engine moved from CatVTON to IDM-VTON when the CatVTON Space went down (2026-11)
-- [ ] Side-by-side before/after slider
+- [x] Before/after slider
 - [ ] Optional paid-API mode (FASHN / Replicate IDM-VTON) behind the same UI
 
 ## Contributing
