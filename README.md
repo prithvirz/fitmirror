@@ -12,6 +12,8 @@ FitMirror is a 100% free, serverless virtual try-on web app. It pulls garment im
 
 ## ✨ Features
 
+- **Paste an image** - copy any product image and press Ctrl+V (works on every store, also on phones).
+- **Bookmarklet** - drag the "Try on FitMirror" link from the page to your bookmarks bar; click it on a product page and the main image opens in FitMirror (desktop).
 - **Product-link fetching (best effort)** - paste a product page or a direct image link. Stores that block bots (Amazon and Myntra returned bot walls in our 2026-11-17 test) fall back to upload.
 - 📤 **Manual fallback** — upload or drag-and-drop a garment image when auto-fetch is blocked (some storefronts block scraping).
 - 🧑 **Your photo, your fit preview** — full-body photo in, AI-generated try-on out.

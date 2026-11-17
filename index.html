@@ -102,6 +102,7 @@
       <button class="btn btn-primary" id="fetchBtn">🔍 Fetch product images</button>
       <div id="linkStatus" class="status"></div>
       <div id="candidates" class="candidates"></div>
+      <details style="margin:10px 0 0;font-size:.85rem;color:var(--muted);"><summary>Works on any store: paste an image, or use the bookmarklet</summary><p style="margin:8px 0;"><b>Paste:</b> copy the product image (right-click, Copy image, or long-press on a phone) and press Ctrl+V on this page.</p><p style="margin:8px 0;"><b>Bookmarklet (desktop):</b> drag <a href="javascript:(()=>{var m=document.querySelector('meta[property=&quot;og:image&quot;]'),u=m&&m.content;if(!u){var b=0;document.querySelectorAll('img').forEach(i=>{var a=i.naturalWidth*i.naturalHeight;if(a>b&&/^http/.test(i.src)){b=a;u=i.src}})}if(!u)return alert('No product image found');open('https://isosmart.online/#img='+encodeURIComponent(u))})()" onclick="alert('Drag this link to your bookmarks bar, then click it on a product page.');return false;">&#128274; Try on FitMirror</a> to your bookmarks bar. On any product page, click it and the garment opens here.</p></details>
 
       <div class="dropzone" id="garmentDrop">…or drop / click to upload a garment image<br><small>(flat front view works best)</small></div>
       <input type="file" id="garmentFile" accept="image/*" class="hidden">
@@ -173,7 +174,7 @@ $("fetchBtn").onclick = async () => {
   st.innerHTML = '<span class="spinner"></span>Fetching product page…'; st.className="status";
   $("candidates").innerHTML = "";
   try {
-    if (/\.(jpe?g|png|webp)(\?|$)/i.test(url)) { garmentImage = { url }; $("garmentPreview").src = url; $("garmentPreview").classList.remove("hidden"); st.textContent = "Garment ready ✓ (direct image link)"; st.className = "status ok"; updateBtn(); return; }
+    if (/\.(jpe?g|png|webp)(\?|$)/i.test(url)) { useImageUrl(url); return; }
     const resp = await fetch("https://r.jina.ai/" + url);
     if (!resp.ok) throw new Error("reader returned " + resp.status);
     const md = await resp.text();
@@ -350,6 +351,19 @@ $("tryonBtn").onclick = async () => {
     st.textContent = "❌ " + msg; st.className = "status err";
   } finally { btn.disabled = false; updateBtn(); }
 };
+
+/* ---------- paste an image, or open from the bookmarklet (#img=URL) ---------- */
+function useImageUrl(u) {
+  garmentImage = { url: u }; $("garmentPreview").src = u; $("garmentPreview").classList.remove("hidden");
+  $("linkStatus").textContent = "Garment ready ✓ (image link)"; $("linkStatus").className = "status ok"; updateBtn();
+}
+document.addEventListener("paste", e => {
+  const f = [...(e.clipboardData?.files || [])].find(f => f.type.startsWith("image/")); if (!f) return;
+  const id = garmentImage && !personFile ? "personFile" : "garmentFile"; // garment first, then your photo
+  const dt = new DataTransfer(); dt.items.add(f); $(id).files = dt.files; $(id).dispatchEvent(new Event("change"));
+});
+const hashImg = location.hash.match(/^#img=(https?%3A.+)/i);
+if (hashImg) { useImageUrl(decodeURIComponent(hashImg[1])); history.replaceState(null, "", location.pathname); }
 </script>
 </body>
 </html>
